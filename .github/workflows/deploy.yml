@@ -33,5 +33,5 @@ jobs:
     - name: Restart bot service
       run: |
         ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          sudo systemctl restart mio-bot.service
+          sudo systemctl restart geminibot
         EOF
