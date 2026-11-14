@@ -27,7 +27,7 @@ jobs:
     # 3. Copia solo il file bot.py
     - name: Copy bot.py via SCP
       run: |
-        scp bot.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/mio-bot/
+        scp bot.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/latestdepl
 
     # 4. Riavvia il servizio (es. systemd) per applicare le modifiche
     - name: Restart bot service
