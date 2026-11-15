@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vim swap files
+.*.sw[a-p]
+*.swp
+*.swo
+
+# Environment & Credentials
+.env
+credentials.json
+*.json
+!last_run.json.example
+
+# Typing / Caches
+.mypy_cache/
+.pytest_cache/
+
+# Local plan symlink
+PLAN.md
