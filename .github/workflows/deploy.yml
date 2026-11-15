@@ -40,6 +40,15 @@ jobs:
       run: |
         scp -r bot.py config.py state.py requirements.txt services prompts handlers ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
 
+    # 4b. PASSO 2b: Installa/aggiorna le dipendenze Python
+    - name: Install Python dependencies
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /home/ubuntu/bot-gemini
+          pip install -r requirements.txt --quiet
+          echo "📦 Dipendenze Python installate/aggiornate."
+        EOF
+
     # 5. PASSO 3 & 4: Test stabilità, pulizia o rollback in caso di errore
     - name: Test stability and handle Rollback if needed
       run: |
