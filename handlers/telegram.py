@@ -10,7 +10,7 @@ from prompts.templates import Prompts
 from services.sheets import SheetsService
 from services.gemini import GeminiService
 from services.tts import create_audio_buffer
-from state import get_streak, format_streak_message
+from state import get_streak, format_streak_message, save_last_run_date
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +149,16 @@ def handle_student_solution(
         )
         correction_reply = gemini.generate_content(prompt)
         send_long_message(bot=bot, chat_id=chat_id, text=correction_reply)
+
+        # Update streak: the student actually did the exercise today
+        from datetime import datetime
+        from config import settings as cfg
+        today_str = datetime.now(cfg.timezone).strftime("%Y-%m-%d")
+        save_last_run_date(today_str)
+        streak, max_streak = get_streak()
+        streak_msg = format_streak_message(streak, max_streak)
+        if streak_msg:
+            bot.send_message(chat_id, streak_msg.strip())
     except Exception as e:
         logger.error("Error correcting student solution: %s", e)
         err_msg = f"⚠️ Errore nell'elaborazione della richiesta: {e}"

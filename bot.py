@@ -9,7 +9,7 @@ from telebot import TeleBot
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from config import settings, logger
-from state import get_last_run_date, save_last_run_date, get_streak, format_streak_message
+from state import get_last_run_date, save_last_run_date
 from prompts import Prompts
 from services import SheetsService, GeminiService
 from handlers import register_handlers, send_long_message
@@ -69,10 +69,6 @@ def run_morning_task() -> None:
 
             # Mark today as completed
             save_last_run_date(today_str)
-            streak, max_streak = get_streak()
-            streak_msg = format_streak_message(streak, max_streak)
-            if streak_msg:
-                bot.send_message(settings.telegram_chat_id, streak_msg.strip())
             logger.info("Morning task completed successfully.")
             return
 
