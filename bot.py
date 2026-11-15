@@ -1,3 +1,4 @@
+import io
 import os
 import json
 import time
@@ -5,7 +6,6 @@ import threading
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
-import io
 from gtts import gTTS
 import gspread
 from google import genai
@@ -143,7 +143,65 @@ def invia_messaggio_lungo(chat_id, testo, max_len=4000):
             
         bot.send_message(chat_id, testo[:split_index])
         testo = testo[split_index:]
+def gestisci_comando_audio(chat_id):
+    """Legge Z10, interroga Gemini con un prompt personalizzato, converte la risposta in audio e la invia."""
+    try:
+        bot.send_message(chat_id, "🎙️ Elaborazione del testo con Gemini in corso...")
+        
+        # 1. Legge il contenuto dalla cella Z10
+        sh = gc.open(SPREADSHEET_NAME)
+        worksheet = sh.worksheet(SHEET_TAB_NAME)
+        contenuto_z10 = worksheet.acell('Z10').value or ""
+        
+        if not contenuto_z10:
+            bot.send_message(chat_id, "⚠️ La cella Z10 è vuota, nessun testo da elaborare.")
+            return
+        
+        # 2. Prompt personalizzato per Gemini (puoi modificarlo come preferisci)
+        prompt_gemini = f"""
+        *** Exercise Context (A2 German Level) ***
+        {contenuto_z10}
 
+        Task: Translate the Italian text contained in the context above into German, suitable for an A2 German learner.
+
+        CRITICAL INSTRUCTIONS:
+        - Return ONLY and EXCLUSIVELY the German translation.
+        - Do NOT include any introduction, greetings, explanations, notes, or concluding remarks.
+        - Do NOT add phrases like "Here is the translation" or markdown code blocks unless it's strictly the translated text itself.
+        - Keep it clean so it can be directly converted into a smooth audio message.
+        """
+        
+        # 3. Chiamata a Gemini usando la tua funzione di retry esistente
+        risposta_gemini = chiedi_a_gemini(prompt_gemini)
+        
+        if not risposta_gemini:
+            bot.send_message(chat_id, "⚠️ Gemini non ha restituito alcuna risposta.")
+            return
+
+        bot.send_message(chat_id, "🔊 Conversione della risposta in audio in corso...")
+
+        # 4. Converte la risposta testuale di Gemini in audio MP3 tramite gTTS
+        # Nota: lang='de' leggerà con pronuncia tedesca, 'it' in italiano. 
+        # Se il testo misto dà problemi, puoi impostare 'de' o 'it' in base alle tue preferenze.
+        tts = gTTS(text=risposta_gemini, lang='de', slow=False)
+        
+        audio_buffer = io.BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        audio_buffer.name = "ripasso_gemini.mp3"
+        
+        # 5. Invia l'audio su Telegram (con una didascalia che mostra anche il testo elaborato da Gemini)
+        didascalia = f"🎧 **Ripasso audio da Gemini:**\n\n{risposta_gemini}"
+        # Telegram limita le didascalie a 1024 caratteri, tagliamo se necessario
+        if len(didascalia) > 1024:
+            didascalia = didascalia[:1020] + "..."
+            
+        bot.send_audio(chat_id, audio_buffer, caption=didascalia)
+        
+    except Exception as e:
+        print(f"Errore nella generazione dell'audio con Gemini: {e}")
+        bot.send_message(chat_id, f"⚠️ Errore durante la creazione dell'audio: {e}")
+        
 def task_mattutino():
     """Task mattutino con logica di retry (5 tentativi ogni 5 minuti)"""
     max_tentativi = 5
@@ -292,21 +350,13 @@ def handle_telegram_message(message):
         if testo_utente.lower() == "ancora":
             bot.reply_to(message, "🔄 Comando 'ancora' ricevuto. Avvio manuale del task mattutino...")
             # Lo facciamo partire in background per non bloccare il bot di Telegram
-            import threading
             threading.Thread(target=task_mattutino).start()
             return
 
         if testo_utente.lower() == "audio":
-            bot.reply_to(message, "🎙️ Generazione dell'audio in corso, attendi un attimo...")
-            
-            # Legge il contenuto dalla cella Z10
-            sh = gc.open(SPREADSHEET_NAME)
-            worksheet = sh.worksheet(SHEET_TAB_NAME)
-            contenuto_z10 = worksheet.acell('Z10').value or ""
-            
-            if not contenuto_z10:
-                bot.send_message(chat_id, "⚠️ La cella Z10 è vuota, nessun audio da generare.")
-                return
+            bot.reply_to(message, "🎙️ Richiesta audio ricevuta. Elaborazione in corso...")
+            threading.Thread(target=gestisci_comando_audio, args=(chat_id,)).start()
+            return
             
             # Nota: imposta lang='it' se il testo in Z10 è principalmente in italiano, 
             # oppure 'de' se vuoi la pronuncia tedesca
