@@ -1,8 +1,8 @@
-name: Deploy Single Bot File via SCP
+name: Deploy with Automatic Rollback
 
 on:
   push:
-    branches: [ main ] # O il branch che preferisci
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -24,14 +24,58 @@ jobs:
         mkdir -p ~/.ssh
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    # 3. Copia solo il file bot.py
-    - name: Copy bot.py via SCP
-      run: |
-        scp bot.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini
-
-    # 4. Riavvia il servizio (es. systemd) per applicare le modifiche
-    - name: Restart bot service
+    # 3. PASSO 1: Rinomina il bot corrente sul server in bot_rollback.py
+    - name: Backup current bot on server
       run: |
         ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          sudo systemctl restart geminibot
+          cd /home/ubuntu/bot-gemini
+          if [ -f bot.py ]; then
+            echo "📦 Rinomino il bot attuale in bot_rollback.py"
+            mv bot.py bot_rollback.py
+          fi
+        EOF
+
+    # 4. PASSO 2: Carica il nuovo bot.py via SCP
+    - name: Upload new bot.py via SCP
+      run: |
+        scp bot.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
+
+    # 5. PASSO 3 & 4: Test stabilità, pulizia o rollback in caso di errore
+    - name: Test stability and handle Rollback if needed
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /home/ubuntu/bot-gemini
+          echo "🔄 Riavvio del servizio con il nuovo bot..."
+          sudo systemctl restart mio-bot.service
+          
+          echo "⏳ Attendo 5 secondi per verificare la stabilità..."
+          sleep 5
+          
+          if systemctl is-active --quiet mio-bot.service; then
+            echo "✅ Il servizio è attivo e stabile!"
+            echo "🧹 Rimuovo il file di backup (bot_rollback.py)..."
+            rm -f bot_rollback.py
+          else
+            echo "❌ ERRORE: Il nuovo bot è crashato o non è partito!"
+            echo "--- Ultimi log di errore ---"
+            sudo journalctl -u mio-bot.service -n 50 --no-pager
+            
+            echo "🔄 Avvio procedura di ROLLBACK..."
+            # Elimina il nuovo bot fallito
+            rm -f bot.py
+            
+            # Rinomina il backup facendolo tornare bot.py
+            if [ -f bot_rollback.py ]; then
+              mv bot_rollback.py bot.py
+              echo "🔙 Vecchio bot ripristinato con successo."
+            else
+              echo "⚠️ Nessun backup trovato per il rollback!"
+            fi
+            
+            echo "🔄 Riavvio del servizio con la versione precedente..."
+            sudo systemctl restart mio-bot.service
+            
+            # Fa fallire la GitHub Action
+            exit 1
+          fi
         EOF
