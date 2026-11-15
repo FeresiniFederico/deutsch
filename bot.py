@@ -363,6 +363,17 @@ def handle_telegram_message(message):
             invia_audio_da_testo(chat_id, contenuto_z10, lingua='it')
             return
 
+        if testo_utente.lower() == "context":
+            sh = gc.open(SPREADSHEET_NAME)
+            worksheet = sh.worksheet(SHEET_TAB_NAME)
+            contenuto_a10 = worksheet.acell('A10').value or ""
+            
+            if not contenuto_a10:
+                bot.send_message(chat_id, "⚠️ La cella A10 è attualmente vuota.")
+            else:
+                invia_messaggio_lungo(chat_id, f"📚 **Contesto attuale (Cella A10):**\n\n{contenuto_a10}")
+            return
+
         # Altrimenti, leggiamo il contenuto della cella Z10 da Google Sheets
         sh = gc.open(SPREADSHEET_NAME)
         worksheet = sh.worksheet(SHEET_TAB_NAME)
