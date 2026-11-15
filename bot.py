@@ -338,9 +338,9 @@ def task_mattutino():
                     print(f"Impossibile inviare la notifica di errore su Telegram: {telegram_err}")
 
 def gestisci_comando_flashcards(chat_id):
-    """Legge A10, chiede a Gemini di generare le Flashcards con soluzioni in fondo e le invia su Telegram."""
+    """Genera Flashcards con spoiler MarkdownV2 nativi di Telegram."""
     try:
-        bot.send_message(chat_id, "🃏 Generazione delle Flashcards in corso...")
+        bot.send_message(chat_id, "🃏 Generazione delle Flashcards interattive in corso...")
         
         # 1. Legge il contesto attuale dalla cella A10
         sh = gc.open(SPREADSHEET_NAME)
@@ -351,42 +351,38 @@ def gestisci_comando_flashcards(chat_id):
             bot.send_message(chat_id, "⚠️ La cella A10 è vuota, impossibile generare le flashcards.")
             return
         
-        # 2. Prompt in inglese strutturato per LLM
+        # 2. Prompt ottimizzato per evitare caratteri speciali che rompono MarkdownV2
         prompt_gemini = f"""
         *** Learning Context (German A2 Level) ***
         {contenuto_a10}
 
-        Task: Create 10 flashcards to review random words and verbs extracted ONLY from the context above.
+        Task: Create 10 flashcards to review random words or verbs extracted ONLY from the context above.
 
-        STRICT INSTRUCTIONS:
-        1. Select 10 random words or verbs from the context.
-        2. For verbs, you MUST include all three main forms in German (Infinitive, Präteritum, and Perfekt / Partizip II) along with their Italian translation.
-        3. Format each flashcard so that the word/prompt is clearly visible, and the translation or German solution is immediately below it wrapped inside Telegram spoiler markdown: ||solution||.
-        4. Do NOT include any introductory or concluding text (like "Here are your flashcards"). Start directly with the flashcards list.
+        STRICT FORMATTING INSTRUCTIONS:
+        - Return ONLY the 10 flashcards. No introduction, no conclusion.
+        - For each flashcard, write the visible prompt (e.g., the Italian word or German verb infinitive), followed by the hidden translation inside double pipes like this: ||hidden translation||.
+        - DO NOT use markdown characters like dashes (-), asterisks (*), underscores (_) or brackets inside the hidden text, because it breaks the spoiler format. Keep the hidden text plain and simple.
+        
+        EXAMPLE FORMAT:
+        1. Mangiare
+        ||essen - ass - gegessen||
 
-        FORMAT REQUIRED (example):
-        1. Mangiare (Verbo)
-        ||- Infinitive: essen
-        - Präteritum: aß
-        - Perfekt: hat gegessen||
-
-        (or for a simple noun/word):
-        1. La casa
+        2. La casa
         ||Das Haus||
-
-        Make sure every single translation/answer is strictly wrapped between || and || so Telegram hides it until clicked.
         """
         
-        # 3. Chiamata a Gemini con il sistema di retry esistente
+        # 3. Chiamata a Gemini
         risposta_gemini = chiedi_a_gemini(prompt_gemini)
         
         if not risposta_gemini:
             bot.send_message(chat_id, "⚠️ Gemini non ha restituito alcuna risposta per le flashcards.")
             return
 
-        # 4. Invio a Telegram (usando la funzione per i messaggi lunghi per sicurezza)
-        messaggio_finale = f"🃏 **Le tue Flashcards del giorno:**\n\n{risposta_gemini}"
-        invia_messaggio_lungo(chat_id, messaggio_finale)
+        # 4. Invio a Telegram usando MarkdownV2
+        messaggio_finale = f"🃏 *Le tue Flashcards Interattive:*\n_(Ticca sui testi nascosti per svelare la traduzione)_\n\n{risposta_gemini}"
+        
+        # Usiamo parse_mode="MarkdownV2"
+        bot.send_message(chat_id, messaggio_finale, parse_mode="MarkdownV2")
         
     except Exception as e:
         print(f"Errore nella generazione delle flashcards: {e}")
