@@ -337,6 +337,67 @@ def task_mattutino():
                 except Exception as telegram_err:
                     print(f"Impossibile inviare la notifica di errore su Telegram: {telegram_err}")
 
+def gestisci_comando_flashcards(chat_id):
+    """Legge A10, chiede a Gemini di generare le Flashcards con soluzioni in fondo e le invia su Telegram."""
+    try:
+        bot.send_message(chat_id, "🃏 Generazione delle Flashcards in corso...")
+        
+        # 1. Legge il contesto attuale dalla cella A10
+        sh = gc.open(SPREADSHEET_NAME)
+        worksheet = sh.worksheet(SHEET_TAB_NAME)
+        contenuto_a10 = worksheet.acell('A10').value or ""
+        
+        if not contenuto_a10:
+            bot.send_message(chat_id, "⚠️ La cella A10 è vuota, impossibile generare le flashcards.")
+            return
+        
+        # 2. Prompt in inglese strutturato per LLM
+        prompt_gemini = f"""
+        *** Learning Context (German A2 Level) ***
+        {contenuto_a10}
+
+        Task: Create 10 flashcards to review random words and verbs extracted ONLY from the context above.
+
+        STRICT INSTRUCTIONS:
+        1. Select 10 random words or verbs from the context.
+        2. For verbs, you MUST include all three main forms (Infinitive, Präteritum, and Perfekt / Partizip II).
+        3. Structure your response strictly in two parts:
+           - PART 1: The Flashcards list (the words/verbs to translate or test, numbered from 1 to 10).
+           - PART 2: Exactly 20 empty lines (newline characters) to act as a visual spacer.
+           - PART 3: The Solutions section at the very bottom, showing the correct translations and forms for each numbered flashcard.
+        4. Do NOT include any introductory or concluding text (like "Here are your flashcards"). Start directly with the flashcards.
+
+        FORMAT REQUIRED:
+        Flashcards:
+        1. [Word/Verb 1]
+        2. [Word/Verb 2]
+        ...
+        10. [Word/Verb 10]
+
+        [Insert approx 20 blank lines here]
+
+        --- SOLUTIONS ---
+        1. [Solution 1]
+        2. [Solution 2]
+        ...
+        10. [Solution 10]
+        """
+        
+        # 3. Chiamata a Gemini con il sistema di retry esistente
+        risposta_gemini = chiedi_a_gemini(prompt_gemini)
+        
+        if not risposta_gemini:
+            bot.send_message(chat_id, "⚠️ Gemini non ha restituito alcuna risposta per le flashcards.")
+            return
+
+        # 4. Invio a Telegram (usando la funzione per i messaggi lunghi per sicurezza)
+        messaggio_finale = f"🃏 **Le tue Flashcards del giorno:**\n\n{risposta_gemini}"
+        invia_messaggio_lungo(chat_id, messaggio_finale)
+        
+    except Exception as e:
+        print(f"Errore nella generazione delle flashcards: {e}")
+        bot.send_message(chat_id, f"⚠️ Errore durante la creazione delle flashcards: {e}")
+
 # --- GESTIONE MESSAGGI TELEGRAM IN ARRIVO ---
 @bot.message_handler(func=lambda message: True)
 def handle_telegram_message(message):
@@ -372,6 +433,11 @@ def handle_telegram_message(message):
                 bot.send_message(chat_id, "⚠️ La cella A10 è attualmente vuota.")
             else:
                 invia_messaggio_lungo(chat_id, f"📚 **Contesto attuale (Cella A10):**\n\n{contenuto_a10}")
+            return
+
+        if testo_utente.lower() in ["flashcards", "flashcard"]:
+            bot.reply_to(message, "🃏 Preparazione delle flashcards dal contesto...")
+            threading.Thread(target=gestisci_comando_flashcards, args=(chat_id,)).start()
             return
 
         # Altrimenti, leggiamo il contenuto della cella Z10 da Google Sheets
