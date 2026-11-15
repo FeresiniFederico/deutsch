@@ -338,7 +338,7 @@ def task_mattutino():
                     print(f"Impossibile inviare la notifica di errore su Telegram: {telegram_err}")
 
 def gestisci_comando_flashcards(chat_id):
-    """Genera Flashcards con spoiler MarkdownV2 nativi di Telegram."""
+    """Genera Flashcards con spoiler HTML nativi di Telegram (evita errori di parsing)."""
     try:
         bot.send_message(chat_id, "🃏 Generazione delle Flashcards interattive in corso...")
         
@@ -351,7 +351,7 @@ def gestisci_comando_flashcards(chat_id):
             bot.send_message(chat_id, "⚠️ La cella A10 è vuota, impossibile generare le flashcards.")
             return
         
-        # 2. Prompt ottimizzato per evitare caratteri speciali che rompono MarkdownV2
+        # 2. Prompt ottimizzato per utilizzare i tag HTML <tg-spoiler>
         prompt_gemini = f"""
         *** Learning Context (German A2 Level) ***
         {contenuto_a10}
@@ -360,15 +360,15 @@ def gestisci_comando_flashcards(chat_id):
 
         STRICT FORMATTING INSTRUCTIONS:
         - Return ONLY the 10 flashcards. No introduction, no conclusion.
-        - For each flashcard, write the visible prompt (e.g., the Italian word or German verb infinitive), followed by the hidden translation inside double pipes like this: ||hidden translation||.
-        - DO NOT use markdown characters like dashes (-), asterisks (*), underscores (_) or brackets inside the hidden text, because it breaks the spoiler format. Keep the hidden text plain and simple.
+        - For each flashcard, write the visible prompt (e.g. the Italian word or German verb), followed by the hidden translation wrapped inside HTML spoiler tags like this: <tg-spoiler>hidden translation</tg-spoiler>.
+        - You can freely use parentheses, dashes, or normal text inside the spoiler tags without issues.
         
         EXAMPLE FORMAT:
         1. Mangiare
-        ||essen - ass - gegessen||
+        <tg-spoiler>essen - aß - gegessen</tg-spoiler>
 
         2. La casa
-        ||Das Haus||
+        <tg-spoiler>Das Haus</tg-spoiler>
         """
         
         # 3. Chiamata a Gemini
@@ -378,11 +378,10 @@ def gestisci_comando_flashcards(chat_id):
             bot.send_message(chat_id, "⚠️ Gemini non ha restituito alcuna risposta per le flashcards.")
             return
 
-        # 4. Invio a Telegram usando MarkdownV2
-        messaggio_finale = f"🃏 *Le tue Flashcards Interattive:*\n_(Ticca sui testi nascosti per svelare la traduzione)_\n\n{risposta_gemini}"
+        # 4. Invio a Telegram usando parse_mode="HTML"
+        messaggio_finale = f"🃏 <b>Le tue Flashcards Interattive:</b>\n<i>(Clicca sui testi nascosti per svelare la traduzione)</i>\n\n{risposta_gemini}"
         
-        # Usiamo parse_mode="MarkdownV2"
-        bot.send_message(chat_id, messaggio_finale, parse_mode="MarkdownV2")
+        bot.send_message(chat_id, messaggio_finale, parse_mode="HTML")
         
     except Exception as e:
         print(f"Errore nella generazione delle flashcards: {e}")
