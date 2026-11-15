@@ -10,6 +10,7 @@ from prompts.templates import Prompts
 from services.sheets import SheetsService
 from services.gemini import GeminiService
 from services.tts import create_audio_buffer
+from state import get_streak, format_streak_message
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,15 @@ def register_handlers(bot: TeleBot, sheets: SheetsService, gemini: GeminiService
 
         if command in ("context", "/context"):
             handle_context_command(bot, chat_id, sheets)
+            return
+
+        if command in ("streak", "/streak"):
+            streak, max_streak = get_streak()
+            if streak == 0:
+                bot.send_message(chat_id, "📊 Non hai ancora iniziato nessuna streak. Scrivi 'ancora' per fare un esercizio!")
+            else:
+                msg = format_streak_message(streak, max_streak)
+                bot.send_message(chat_id, msg.strip())
             return
 
         if command in ("flashcards", "flashcard", "/flashcards", "/flashcard"):
