@@ -1,4 +1,19 @@
+import os
+import json
+import time
+import threading
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
+import gspread
+from google import genai
+from telebot import TeleBot
+from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+
+# Carica automaticamente le variabili dal file .env (utile sia da terminale che da systemd)
+load_dotenv()
 # --- CONFIGURAZIONE ---
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
