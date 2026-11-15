@@ -360,27 +360,21 @@ def gestisci_comando_flashcards(chat_id):
 
         STRICT INSTRUCTIONS:
         1. Select 10 random words or verbs from the context.
-        2. For verbs, you MUST include all three main forms (Infinitive, Präteritum, and Perfekt / Partizip II).
-        3. Structure your response strictly in two parts:
-           - PART 1: The Flashcards list (the words/verbs to translate or test, numbered from 1 to 10).
-           - PART 2: Exactly 20 empty lines (newline characters) to act as a visual spacer.
-           - PART 3: The Solutions section at the very bottom, showing the correct translations and forms for each numbered flashcard.
-        4. Do NOT include any introductory or concluding text (like "Here are your flashcards"). Start directly with the flashcards.
+        2. For verbs, you MUST include all three main forms in German (Infinitive, Präteritum, and Perfekt / Partizip II) along with their Italian translation.
+        3. Format each flashcard so that the word/prompt is clearly visible, and the translation or German solution is immediately below it wrapped inside Telegram spoiler markdown: ||solution||.
+        4. Do NOT include any introductory or concluding text (like "Here are your flashcards"). Start directly with the flashcards list.
 
-        FORMAT REQUIRED:
-        Flashcards:
-        1. [Word/Verb 1]
-        2. [Word/Verb 2]
-        ...
-        10. [Word/Verb 10]
+        FORMAT REQUIRED (example):
+        1. Mangiare (Verbo)
+        ||- Infinitive: essen
+        - Präteritum: aß
+        - Perfekt: hat gegessen||
 
-        [Insert approx 20 blank lines here]
+        (or for a simple noun/word):
+        1. La casa
+        ||Das Haus||
 
-        --- SOLUTIONS ---
-        1. [Solution 1]
-        2. [Solution 2]
-        ...
-        10. [Solution 10]
+        Make sure every single translation/answer is strictly wrapped between || and || so Telegram hides it until clicked.
         """
         
         # 3. Chiamata a Gemini con il sistema di retry esistente
