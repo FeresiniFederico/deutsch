@@ -80,8 +80,8 @@ def invia_audio_da_testo(chat_id, testo, lingua='de'):
         
 def chiedi_a_gemini(testo):
     """Invia il testo a Gemini con logica di retry, fallback e un timeout di sicurezza."""
-    modelli_da_provare =  ['gemini-3.8-flash','gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
-    max_tentativi_per_modello = 3
+    modelli_da_provare =  ['gemini-3.1-flash-lite', 'gemini-3.8-flash','gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
+    max_tentativi_per_modello = 1
     timeout_secondi = 60  # Se Gemini non risponde in 30 secondi, sblocca la chiamata
 
     def _chiama_api(modello, contenuto):
