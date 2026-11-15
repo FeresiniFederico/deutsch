@@ -46,10 +46,10 @@ jobs:
         ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           cd /home/ubuntu/bot-gemini
           echo "🔄 Riavvio del servizio con il nuovo bot..."
-          sudo systemctl restart mio-bot.service
+          sudo systemctl restart geminibot
           
-          echo "⏳ Attendo 5 secondi per verificare la stabilità..."
-          sleep 5
+          echo "⏳ Attendo 10 secondi per verificare la stabilità..."
+          sleep 10
           
           if systemctl is-active --quiet mio-bot.service; then
             echo "✅ Il servizio è attivo e stabile!"
@@ -58,7 +58,7 @@ jobs:
           else
             echo "❌ ERRORE: Il nuovo bot è crashato o non è partito!"
             echo "--- Ultimi log di errore ---"
-            sudo journalctl -u mio-bot.service -n 50 --no-pager
+            sudo journalctl -u geminibot -n 50 --no-pager
             
             echo "🔄 Avvio procedura di ROLLBACK..."
             # Elimina il nuovo bot fallito
@@ -73,7 +73,7 @@ jobs:
             fi
             
             echo "🔄 Riavvio del servizio con la versione precedente..."
-            sudo systemctl restart mio-bot.service
+            sudo systemctl restart geminibot
             
             # Fa fallire la GitHub Action
             exit 1
