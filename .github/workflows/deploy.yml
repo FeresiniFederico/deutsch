@@ -31,14 +31,14 @@ jobs:
           cd /home/ubuntu/bot-gemini
           rm -rf backup_rollback
           mkdir -p backup_rollback
-          cp -r bot.py config.py state.py services prompts handlers backup_rollback/ 2>/dev/null || true
+          cp -r bot.py config.py state.py requirements.txt services prompts handlers backup_rollback/ 2>/dev/null || true
           echo "📦 Backup salvato in backup_rollback/"
         EOF
 
     # 4. PASSO 2: Carica i nuovi file e cartelle via SCP
     - name: Upload new code via SCP
       run: |
-        scp -r bot.py config.py state.py services prompts handlers ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
+        scp -r bot.py config.py state.py requirements.txt services prompts handlers ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
 
     # 5. PASSO 3 & 4: Test stabilità, pulizia o rollback in caso di errore
     - name: Test stability and handle Rollback if needed

@@ -1,0 +1,6 @@
+pyTeleBot>=4.14
+gspread>=5.12
+google-genai>=1.0
+gTTS>=2.5
+APScheduler>=3.10
+python-dotenv>=1.0

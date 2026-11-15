@@ -167,6 +167,11 @@ def register_handlers(bot: TeleBot, sheets: SheetsService, gemini: GeminiService
         chat_id = message.chat.id
         logger.info("Message received from %s: '%s'", chat_id, text)
 
+        # Auth guard: ignore messages from unauthorized chats
+        if str(chat_id) not in settings.telegram_allowed_chat_ids:
+            logger.warning("Unauthorized message from chat_id %s. Ignoring.", chat_id)
+            return
+
         if command in ("ancora", "/ancora"):
             bot.reply_to(message, "🔄 Comando 'ancora' ricevuto. Avvio manuale del task mattutino...")
             threading.Thread(target=trigger_morning_task_fn, daemon=True).start()

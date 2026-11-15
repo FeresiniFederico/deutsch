@@ -27,6 +27,11 @@ class Settings:
     # Telegram
     telegram_token: str = os.getenv("TELEGRAM_TOKEN", "")
     telegram_chat_id: str = os.getenv("TELEGRAM_CHAT_ID", "")
+    telegram_allowed_chat_ids: frozenset = frozenset(
+        cid.strip()
+        for cid in os.getenv("TELEGRAM_ALLOWED_CHAT_IDS", os.getenv("TELEGRAM_CHAT_ID", "")).split(",")
+        if cid.strip()
+    )
 
     # Google Sheets
     spreadsheet_name: str = os.getenv("SPREADSHEET_NAME", "")
