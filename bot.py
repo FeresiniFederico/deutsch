@@ -5,7 +5,8 @@ import threading
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
-
+import io
+from gtts import gTTS
 import gspread
 from google import genai
 from telebot import TeleBot
@@ -52,7 +53,31 @@ def save_last_run_date(date_str):
     except Exception as e:
         print(f"Errore nel salvataggio dello stato: {e}")
 
+def invia_audio_da_testo(chat_id, testo, lingua='de'):
+    """Converte un testo in audio MP3 e lo invia su Telegram."""
+    if not testo:
+        bot.send_message(chat_id, "⚠️ Non c'è nessun testo da convertire in audio.")
+        return
 
+    try:
+        # Crea l'audio con gTTS (impostato su 'de' per il tedesco, o 'it' per l'italiano)
+        tts = gTTS(text=testo, lang=lingua, slow=False)
+        
+        # Salva l'audio in un buffer in memoria (evita di creare file temporanei su disco)
+        audio_buffer = io.BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        
+        # Imposta un nome al file per Telegram
+        audio_buffer.name = "esercizio.mp3"
+        
+        # Invia come messaggio vocale/audio su Telegram
+        bot.send_audio(chat_id, audio_buffer, caption="🎧 Ecco l'audio dell'esercizio!")
+        
+    except Exception as e:
+        print(f"Errore nella generazione/invio dell'audio: {e}")
+        bot.send_message(chat_id, f"⚠️ Errore durante la creazione dell'audio: {e}")
+        
 def chiedi_a_gemini(testo):
     """Invia il testo a Gemini con logica di retry, fallback e un timeout di sicurezza."""
     modelli_da_provare =  ['gemini-4-carbon', 'gemini-4-argon', 'gemini-4-hydrogen', 'gemini-3.8-flash','gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
@@ -269,6 +294,23 @@ def handle_telegram_message(message):
             # Lo facciamo partire in background per non bloccare il bot di Telegram
             import threading
             threading.Thread(target=task_mattutino).start()
+            return
+
+        if testo_utente.lower() == "audio":
+            bot.reply_to(message, "🎙️ Generazione dell'audio in corso, attendi un attimo...")
+            
+            # Legge il contenuto dalla cella Z10
+            sh = gc.open(SPREADSHEET_NAME)
+            worksheet = sh.worksheet(SHEET_TAB_NAME)
+            contenuto_z10 = worksheet.acell('Z10').value or ""
+            
+            if not contenuto_z10:
+                bot.send_message(chat_id, "⚠️ La cella Z10 è vuota, nessun audio da generare.")
+                return
+            
+            # Nota: imposta lang='it' se il testo in Z10 è principalmente in italiano, 
+            # oppure 'de' se vuoi la pronuncia tedesca
+            invia_audio_da_testo(chat_id, contenuto_z10, lingua='it')
             return
 
         # Altrimenti, leggiamo il contenuto della cella Z10 da Google Sheets
