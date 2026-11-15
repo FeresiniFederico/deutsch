@@ -51,7 +51,7 @@ jobs:
           echo "⏳ Attendo 10 secondi per verificare la stabilità..."
           sleep 10
           
-          if systemctl is-active --quiet mio-bot.service; then
+          if systemctl is-active --quiet geminibot; then
             echo "✅ Il servizio è attivo e stabile!"
             echo "🧹 Rimuovo il file di backup (bot_rollback.py)..."
             rm -f bot_rollback.py
