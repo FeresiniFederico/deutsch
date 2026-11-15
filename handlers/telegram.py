@@ -170,6 +170,7 @@ def register_handlers(bot: TeleBot, sheets: SheetsService, gemini: GeminiService
         # Auth guard: ignore messages from unauthorized chats
         if str(chat_id) not in settings.telegram_allowed_chat_ids:
             logger.warning("Unauthorized message from chat_id %s. Ignoring.", chat_id)
+            bot.reply_to(message, "⛔ Non sei autorizzato ad usare questo bot.")
             return
 
         if command in ("ancora", "/ancora"):
