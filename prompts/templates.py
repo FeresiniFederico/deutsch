@@ -98,11 +98,14 @@ Here my solutions to the excercises:
 {student_answer}
 
 Correct my exercises. The correction must be in the following format:
-- First copy paste my response 
-- Second, provide the corrected version. 
-- Third, briefly explain the errors in a concise and brief way. 
+
+- First, provide the originak Italian sentence, part of the exercise.
+- Second, copy paste my response 
+- Third, provide the corrected version. 
+- Fourth, explain the errors. 
+
 Repeat it for every sentence. 
 The explanations of the grammatical rules must be in Italian. Do not correct or explain anything if the response is alredy correct.
-Do not repeat the context. Keep the response and the explanation as brief as possible. 
+Do not repeat the context.
 Make sure to only use what Telegram can correctly display and format.
 """
