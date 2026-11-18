@@ -35,9 +35,9 @@ and a 30% of new words.
 For the new words, provide a vocabulary at the end of the text structured as follows: 
  - German Word: Italian Translation
 
-Try to use as many grammar rules described in the context as possible. 
+Use as many grammar rules described in the context as possible. 
 Do not provide the translation, just focus on making the text relevant, with subordinates, 
-using as many already seen words, verbs and grammar rules as possible.
+using as many already seen words, verbs and grammar rules as possible. For the text, to make it interesting, draw inspiration from an historical event which happened today's date.
 
 The reply MUST be structured as follows:
 
