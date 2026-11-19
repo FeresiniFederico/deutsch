@@ -29,15 +29,16 @@ CRITICAL INSTRUCTIONS:
 *** Context ***
 {context}
 
-Create a text of around 8 senteces in Italian for me to translate in German,
+Create a text of around 4 senteces in Italian for me to translate in German,
 incorporating 70% of the words, verbs, and grammatical rules provided in the above context, 
 and a 30% of new words. 
-For the new words, provide a vocabulary at the end of the text structured as follows: 
- - German Word: Italian Translation
+For the new words, provide the Italian translation between parenthesis: Example
+ - [...] German Word (Italian Translation) [...]
 
 Use as many grammar rules described in the context as possible. 
 Do not provide the translation, just focus on making the text relevant, with subordinates, 
-using as many already seen words, verbs and grammar rules as possible. For the text, to make it interesting, draw inspiration from an historical event which happened today's date.
+using as many already seen words, verbs and grammar rules as possible.
+For the text context, draw inspiration from an historical event happened today.
 
 The reply MUST be structured as follows:
 
