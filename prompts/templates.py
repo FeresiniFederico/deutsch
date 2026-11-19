@@ -41,9 +41,11 @@ Write a short, coherent paragraph in Italian (approximately 4 sentences) for me 
 - Briefly weave the historical year and event into the narrative so the context is clear.
 
 *** Vocabulary & Grammar Constraints ***
-- **70% Review:** Reuse as many words, verbs, and grammatical rules from the Learning Context above as possible.
-- **30% New Vocabulary:** Introduce roughly 30% new words. Whenever you use a new German word in the Italian text, immediately provide its German equivalent in parentheses, following this exact format:
+- **80% Review:** Reuse as many words, verbs, and grammatical rules from the Learning Context above as possible.
+- **20% New Vocabulary:** Introduce roughly 20% new words. Whenever you use a new German word not present in the Learning Context in the Italian text, immediately provide its German equivalent in parentheses, following this exact format:
   `[...] Italian word (German Translation) [...]`
+- **Double Check:**
+Always double check that in the Italian text when you use words I don't know the German translation of, based on the Learning Context, you provide the German Translation in parentheses, as described in the previous point.
 - **Sentence Structure:** Use complex sentences with subordinate clauses and apply the grammar rules listed in the Learning Context.
 - **Output Rule:** Provide ONLY the Italian exercise text. Do NOT include the full German translation.
 """
