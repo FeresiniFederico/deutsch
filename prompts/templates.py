@@ -30,11 +30,11 @@ CRITICAL INSTRUCTIONS:
         today_without_year = date.today().strftime("%B %d")
         
         base_prompt = f"""
-*** Learning Context ***
-{context}
-
 *** Task ***
-Write a short, coherent paragraph in Italian (approximately 4 sentences) for me to translate into German.
+Write a short, coherent paragraph in Italian (approximately 4 sentences) for me to translate into German. The text must be added good translation exercise for an A2 German language student. Use the following context to write the text:
+** CONTEXT START**
+{context}
+** CONTEXT END **
 
 *** Topic & Historical Inspiration ***
 - Base the story on a real historical event that occurred on {today_without_year} in a past year (same month and day, different year).
@@ -44,6 +44,7 @@ Write a short, coherent paragraph in Italian (approximately 4 sentences) for me 
 - **80% Review:** Reuse as many words, verbs, and grammatical rules from the Learning Context above as possible.
 - **20% New Vocabulary:** Introduce roughly 20% new words. For every word in the Italian text, immediately provide its German equivalent in parentheses, following this exact format:
   `[...] Italian word (German Translation) [...]`
+German translation of verbs must be in the Infinitiv form, and adjectives and nouns neither konjugated, nor declinated.
 - **Sentence Structure:** Use complex sentences with subordinate clauses and apply the grammar rules listed in the Learning Context.
 - **Output Rule:** Provide ONLY the Italian exercise text. Do NOT include the full German translation.
 """
