@@ -125,3 +125,26 @@ The explanations of the grammatical rules must be in Italian. Do not correct or 
 Do not repeat the context.
 Make sure to only use what Telegram can correctly display and format.
 """
+        
+    @staticmethod
+    def correction_study_guide_html(exercise_context: str, student_answer: str, correction_reply: str) -> str:
+    return f"""
+Sei un insegnante di tedesco (livello A2) paziente e preciso.
+A partire dall'esercizio assegnato, dalla risposta dello studente e dalla correzione già effettuata, genera un documento HTML completo e ben strutturato da convertire in PDF come scheda di studio approfondita.
+
+### Dati della lezione
+**Esercizio:**
+{exercise_context}
+
+**Risposta dello studente:**
+{student_answer}
+
+**Correzione già fornita:**
+{correction_reply}
+
+### Requisiti del documento HTML
+- Restituisci **esclusivamente** codice HTML valido (da `<!DOCTYPE html>` a `</html>`), senza markdown fences (` ``` `).
+- Spiega in modo **esteso e approfondito** ogni errore commesso e i **principali argomenti grammaticali o lessicali** collegati (es. casi Nominativo/Accusativo/Dativo, posizione del verbo nelle subordinate/principali, coniugazione, genere/plurale, preposizioni).
+- Usa un CSS `<style>` interno curato e leggibile in stampa PDF: margini di pagina (`@page`), palette sobria e gradevole (es. blu/ardesia, verde per ciò che è corretto, ambra/rosso chiaro per gli errori), box di approfondimento, tabelle riassuntive (es. *Errore / Forma corretta / Regola & Argomento*, *Vocabolario chiave*), ed elenchi chiari.
+- Scrivi le spiegazioni in italiano chiaro, mantenendo in tedesco (con traduzione in italiano) gli esempi e le regole grammaticali.
+""".strip()
