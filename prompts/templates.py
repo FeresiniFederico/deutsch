@@ -38,7 +38,7 @@ CRITICAL INSTRUCTIONS:
           "the early 20th century (1901–1945)",
           "the late 20th or 21st century (1946–present)",
         ]
-        suggested_era = eras[today.timetuple().tm_yday % len(eras)]
+        suggested_era = eras[date.today().timetuple().tm_yday % len(eras)]
         
         base_prompt = f"""
 *** Task ***
