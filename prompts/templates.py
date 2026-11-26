@@ -125,10 +125,9 @@ The explanations of the grammatical rules must be in Italian. Do not correct or 
 Do not repeat the context.
 Make sure to only use what Telegram can correctly display and format.
 """
-        
     @staticmethod
     def correction_study_guide_html(exercise_context: str, student_answer: str, correction_reply: str) -> str:
-    return f"""
+        return f"""
 Sei un insegnante di tedesco (livello A2) paziente e preciso.
 A partire dall'esercizio assegnato, dalla risposta dello studente e dalla correzione già effettuata, genera un documento HTML completo e ben strutturato da convertire in PDF come scheda di studio approfondita.
 
