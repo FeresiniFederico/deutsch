@@ -21,7 +21,8 @@ def html_to_pdf_buffer(html_text: str) -> io.BytesIO:
     html_clean = _clean_html_response(html_text)
     pdf_bytes = weasyprint.HTML(string=html_clean).write_pdf()
     buf = io.BytesIO(pdf_bytes)
-    stamp = datetime.now(settings.timezone).strftime("%Y%m%d_%H%M")
-    buf.name = f"approfondimento_tedesco_{stamp}.pdf"
+    #stamp = datetime.now(settings.timezone).strftime("%Y%m%d_%H%M")
+    #buf.name = f"approfondimento_tedesco_{stamp}.pdf"
+    buf.name = f"approfondimento_tedesco.pdf"
     buf.seek(0)
     return buf
