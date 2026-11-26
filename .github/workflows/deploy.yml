@@ -9,77 +9,94 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # 1. Configura la chiave SSH
-    - name: Setup SSH Key
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_KEY }}
+      # 1. Configura la chiave SSH
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
-    # 2. Aggiungi il server agli host conosciuti
-    - name: Add remote to known_hosts
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      # 2. Aggiungi il server agli host conosciuti
+      - name: Add remote to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    # 3. PASSO 1: Backup del codice attuale sul server
-    - name: Backup current bot on server
-      run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /home/ubuntu/bot-gemini
-          rm -rf backup_rollback
-          mkdir -p backup_rollback
-          cp -r bot.py config.py state.py requirements.txt services prompts handlers backup_rollback/ 2>/dev/null || true
-          echo "📦 Backup salvato in backup_rollback/"
-        EOF
+      # 3. PASSO 1: Backup del codice attuale sul server
+      - name: Backup current bot on server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd /home/ubuntu/bot-gemini
+            rm -rf backup_rollback
+            mkdir -p backup_rollback
+            cp -r bot.py config.py state.py requirements.txt services prompts handlers backup_rollback/ 2>/dev/null || true
+            echo "📦 Backup salvato in backup_rollback/"
+          EOF
 
-    # 4. PASSO 2: Carica i nuovi file e cartelle via SCP
-    - name: Upload new code via SCP
-      run: |
-        scp -r bot.py config.py state.py requirements.txt services prompts handlers ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
+      # 4. PASSO 2: Carica i nuovi file e cartelle via SCP
+      - name: Upload new code via SCP
+        run: |
+          scp -r bot.py config.py state.py requirements.txt services prompts handlers ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bot-gemini/
 
-    # 4b. PASSO 2b: Installa/aggiorna le dipendenze Python
-    - name: Install Python dependencies
-      run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /home/ubuntu/bot-gemini
-          pip install -r requirements.txt --quiet
-          echo "📦 Dipendenze Python installate/aggiornate."
-        EOF
+      # 4b. PASSO 2b: Installa librerie di sistema e pacchetti Python nella venv di systemd
+      - name: Install system and Python dependencies in systemd venv
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd /home/ubuntu/bot-gemini
 
-    # 5. PASSO 3 & 4: Test stabilità, pulizia o rollback in caso di errore
-    - name: Test stability and handle Rollback if needed
-      run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /home/ubuntu/bot-gemini
-          echo "🔄 Riavvio del servizio con il nuovo bot..."
-          sudo systemctl restart geminibot
-          
-          echo "⏳ Attendo 10 secondi per verificare la stabilità..."
-          sleep 10
-          
-          if systemctl is-active --quiet geminibot; then
-            echo "✅ Il servizio è attivo e stabile!"
-            echo "💾 Cartella di backup conservata sul server per sicurezza (backup_rollback/)."
-          else
-            echo "❌ ERRORE: Il nuovo bot è crashato o non è partito!"
-            echo "--- Ultimi log di errore ---"
-            sudo journalctl -u geminibot -n 50 --no-pager
-            
-            echo "🔄 Avvio procedura di ROLLBACK..."
-            if [ -d backup_rollback ]; then
-              cp -r backup_rollback/* .
-              echo "🔙 Vecchia versione ripristinata con successo."
-            else
-              echo "⚠️ Nessun backup trovato per il rollback!"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq \
+              libpango-1.0-0 \
+              libpangocairo-1.0-0 \
+              libgdk-pixbuf-2.0-0 \
+              libffi-dev \
+              shared-mime-info \
+              fonts-dejavu-core
+
+            if [ ! -x "/home/ubuntu/bot-gemini/venv/bin/python" ]; then
+              python3 -m venv /home/ubuntu/bot-gemini/venv
             fi
-            
-            echo "🔄 Riavvio del servizio con la versione precedente..."
+
+            /home/ubuntu/bot-gemini/venv/bin/pip install --upgrade pip --quiet
+            /home/ubuntu/bot-gemini/venv/bin/pip install -r requirements.txt --quiet
+            echo "📦 Dipendenze installate in /home/ubuntu/bot-gemini/venv."
+          EOF
+
+      # 5. PASSO 3 & 4: Test stabilità, pulizia o rollback in caso di errore
+      - name: Test stability and handle Rollback if needed
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd /home/ubuntu/bot-gemini
+            echo "🔄 Riavvio del servizio con il nuovo bot..."
             sudo systemctl restart geminibot
-            
-            # Fa fallire la GitHub Action
-            exit 1
-          fi
-        EOF
+
+            echo "⏳ Attendo 10 secondi per verificare la stabilità..."
+            sleep 10
+
+            if systemctl is-active --quiet geminibot; then
+              echo "✅ Il servizio è attivo e stabile!"
+              echo "💾 Cartella di backup conservata sul server per sicurezza (backup_rollback/)."
+            else
+              echo "❌ ERRORE: Il nuovo bot è crashato o non è partito!"
+              echo "--- Ultimi log di errore ---"
+              sudo journalctl -u geminibot -n 50 --no-pager
+
+              echo "🔄 Avvio procedura di ROLLBACK..."
+              if [ -d backup_rollback ]; then
+                cp -r backup_rollback/* .
+                echo "🔙 Vecchia versione ripristinata con successo."
+              else
+                echo "⚠️ Nessun backup trovato per il rollback!"
+              fi
+
+              echo "🔄 Riavvio del servizio con la versione precedente..."
+              sudo systemctl restart geminibot
+
+              # Fa fallire la GitHub Action
+              exit 1
+            fi
+          EOF
