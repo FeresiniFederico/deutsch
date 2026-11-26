@@ -11,6 +11,7 @@ from services.sheets import SheetsService
 from services.gemini import GeminiService
 from services.tts import create_audio_buffer
 from state import get_streak, format_streak_message, save_last_run_date
+from services.pdf_guide import html_to_pdf_buffer
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,36 @@ def handle_student_solution(
         streak_msg = format_streak_message(streak, max_streak)
         if streak_msg:
             bot.send_message(chat_id, streak_msg.strip())
+
+        # Step 2: scheda approfondita in HTML -> PDF -> Telegram
+        try:
+            bot.send_message(chat_id, "📘 Sto preparando il PDF di approfondimento sugli errori e sulla grammatica...")
+            html_prompt = Prompts.correction_study_guide_html(
+                exercise_context=exercise_context,
+                student_answer=solution_text,
+                correction_reply=correction_reply,
+            )
+            html_guide = gemini.generate_content(html_prompt)
+
+            if not html_guide.strip():
+                logger.warning("Empty HTML study guide returned by Gemini.")
+                bot.send_message(chat_id, "⚠️ Impossibile generare il PDF di approfondimento: risposta vuota.")
+                return
+
+            pdf_buf = html_to_pdf_buffer(html_guide)
+            bot.send_document(
+                chat_id,
+                pdf_buf,
+                caption="📘 Approfondimento errori e argomenti grammaticali (PDF)",
+                reply_to_message_id=reply_to_message_id,
+            )
+        except Exception as pdf_err:
+            logger.error("Failed to generate or send study guide PDF: %s", pdf_err)
+            bot.send_message(
+                chat_id,
+                f"⚠️ La correzione è andata a buon fine, ma c'è stato un errore nel PDF: {pdf_err}",
+            )
+            
     except Exception as e:
         logger.error("Error correcting student solution: %s", e)
         err_msg = f"⚠️ Errore nell'elaborazione della richiesta: {e}"
