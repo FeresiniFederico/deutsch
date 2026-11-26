@@ -129,18 +129,23 @@ Make sure to only use what Telegram can correctly display and format.
     def correction_study_guide_html(exercise_context: str, student_answer: str, correction_reply: str) -> str:
         return f"""
         You are a German teacher.
-Based on the assigned exercise, and the correction already provided, generate an extensive and complete, well-structured HTML document to be converted into a PDF as an in-depth study sheet.
-
-### Lesson Data
+Based on the assigned exercise and the correction already provided, generate a complete, well-structured HTML document to be converted into a PDF as a comprehensive, full-lesson study guide organized by topic.
+**Lesson Data**
 **Exercise:**
 {exercise_context}
 
 **Correction Already Provided:**
 {correction_reply}
 
-### HTML Document Requirements
-* Return **exclusively** valid HTML code (from `<!DOCTYPE html>` to `</html>`), without markdown fences (`````).
-* Explain **extensively and thoroughly** every mistake made and the **main related grammar or vocabulary topics**. For example, provide full conjugation tables for misused verbs, or detailed explanations of incorrect grammar rules.
-* Use a clean, print-friendly internal `<style>` CSS: page margins (`@page`), a calm and pleasant color palette (e.g., blue/slate, green for what is correct, amber/soft red for mistakes), deep-dive callout boxes, summary tables (e.g., *Mistake / Correct Form / Rule & Topic*, *Key Vocabulary*), and clear lists.
-* Write the explanations in clear Italian.
+** HTML Document Requirements **
+- Return exclusively valid HTML code (from <!DOCTYPE html> to </html>), without markdown fences (```).
+- Full-Lesson Depth per Topic: Group every mistake or weak point into distinct topic sections (e.g., verb conjugation, word order/syntax, grammatical cases, prepositions, articles/gender/plural, vocabulary/idioms). Even if a single verb is conjugated incorrectly or a rule is triggered only once, treat that entire topic as a full lesson from scratch—as if a professor were explaining the topic for the first time to a learner who has never seen it.
+- Complete Reference Material in Every Section: For each topic section, include:
+1. Clear conceptual explanation from first principles and why the mistake occurred in the exercise.
+2. Explicit sentence structure rules and word-order patterns (where applicable, e.g., main clauses, subordinate clauses, verb brackets/Satzklammer, position of time/manner/place).
+3. Complete reference tables—such as full conjugation tables across relevant tenses/persons for any misused or key verb, full declension/case tables, or structured grammar rules.
+4. Multiple clear German examples paired with accurate Italian translations, highlighting what changed and why.
+- Error Overview & Vocabulary Recap: Include a summary table mapping Mistake / Correct Form / Topic & Core Rule, plus a structured key vocabulary section (nouns with articles and plural forms, verbs with key forms, useful expressions).
+- Print-Friendly Styling: Use a clean, well-proportioned internal <style> CSS optimized for PDF printing (@page margins, break-inside: avoid on tables and callout boxes where appropriate, readable typography, calm slate/blue accents, green for correct forms, amber/soft red for errors).
+- Write all explanations and headings clearly in Italian, keeping German examples, grammatical terms where helpful, and translations clear and accurate.
 """.strip()
