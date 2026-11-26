@@ -28,6 +28,17 @@ CRITICAL INSTRUCTIONS:
     def daily_exercise(context: str, is_friday: bool) -> str:
         """Prompt to generate the daily German exercise. Friday includes summary expansion."""
         today_without_year = date.today().strftime("%B %d")
+        # Rotate historical periods daily so the model explores different centuries
+        eras = [
+          "Antiquity or the Early Middle Ages (before 1000 AD)",
+          "the High or Late Middle Ages (11th–15th century)",
+          "the Renaissance or Early Modern period (16th–17th century)",
+          "the 18th century (1701–1800)",
+          "the 19th century (1801–1900)",
+          "the early 20th century (1901–1945)",
+          "the late 20th or 21st century (1946–present)",
+        ]
+        suggested_era = eras[today.timetuple().tm_yday % len(eras)]
         
         base_prompt = f"""
 *** Task ***
@@ -38,6 +49,7 @@ Write a short, coherent paragraph in Italian (approximately 4 sentences) for me 
 
 *** Topic & Historical Inspiration ***
 - Base the story on a real historical event that occurred on {today_without_year} in a past year (same month and day, different year).
+- **Time Period Focus:** Prioritize an event from **{suggested_era}** on {today_without_year}. (Only fall back to an adjacent century if no notable event is recorded for that exact date in that era.)
 - Briefly weave the historical year and event into the narrative so the context is clear.
 
 *** Vocabulary & Grammar Constraints ***
