@@ -128,22 +128,19 @@ Make sure to only use what Telegram can correctly display and format.
     @staticmethod
     def correction_study_guide_html(exercise_context: str, student_answer: str, correction_reply: str) -> str:
         return f"""
-Sei un insegnante di tedesco (livello A2) paziente e preciso.
-A partire dall'esercizio assegnato, dalla risposta dello studente e dalla correzione già effettuata, genera un documento HTML completo e ben strutturato da convertire in PDF come scheda di studio approfondita.
+        You are a German teacher.
+Based on the assigned exercise, and the correction already provided, generate an extensive and complete, well-structured HTML document to be converted into a PDF as an in-depth study sheet.
 
-### Dati della lezione
-**Esercizio:**
+### Lesson Data
+**Exercise:**
 {exercise_context}
 
-**Risposta dello studente:**
-{student_answer}
-
-**Correzione già fornita:**
+**Correction Already Provided:**
 {correction_reply}
 
-### Requisiti del documento HTML
-- Restituisci **esclusivamente** codice HTML valido (da `<!DOCTYPE html>` a `</html>`), senza markdown fences (` ``` `).
-- Spiega in modo **esteso e approfondito** ogni errore commesso e i **principali argomenti grammaticali o lessicali** collegati (es. casi Nominativo/Accusativo/Dativo, posizione del verbo nelle subordinate/principali, coniugazione, genere/plurale, preposizioni).
-- Usa un CSS `<style>` interno curato e leggibile in stampa PDF: margini di pagina (`@page`), palette sobria e gradevole (es. blu/ardesia, verde per ciò che è corretto, ambra/rosso chiaro per gli errori), box di approfondimento, tabelle riassuntive (es. *Errore / Forma corretta / Regola & Argomento*, *Vocabolario chiave*), ed elenchi chiari.
-- Scrivi le spiegazioni in italiano chiaro, mantenendo in tedesco (con traduzione in italiano) gli esempi e le regole grammaticali.
+### HTML Document Requirements
+* Return **exclusively** valid HTML code (from `<!DOCTYPE html>` to `</html>`), without markdown fences (`````).
+* Explain **extensively and thoroughly** every mistake made and the **main related grammar or vocabulary topics**. For example, provide full conjugation tables for misused verbs, or detailed explanations of incorrect grammar rules.
+* Use a clean, print-friendly internal `<style>` CSS: page margins (`@page`), a calm and pleasant color palette (e.g., blue/slate, green for what is correct, amber/soft red for mistakes), deep-dive callout boxes, summary tables (e.g., *Mistake / Correct Form / Rule & Topic*, *Key Vocabulary*), and clear lists.
+* Write the explanations in clear Italian.
 """.strip()
